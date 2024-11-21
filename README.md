@@ -8,9 +8,11 @@ So, how much performance improvement can we really expect, and is it worth the e
 
 I used a coin segmentation example from OpenCV (the watershed example) and employed LLMs to generate the code. The code may not be fully optimized but serves as a "quick and dirty" benchmark to answer whether Python's perceived "slowness" is truly a bottleneck for computer vision tasks.
 
+Later was added a C++ implementation of the same code for sanity checks, since the go did not work as expected.
+
 ## Benchmark Overview
 
-In this benchmark, I conducted benchmarks in Go and Python to compare the performance of image segmentation algorithms for detecting and counting coins. The benchmarks were run using OpenCV in both languages to ensure consistent functionality.
+In this benchmark, I conducted benchmarks in Go, Python and C++ to compare the performance of image segmentation algorithms for detecting and counting coins. The benchmarks were run using OpenCV in both languages to ensure consistent functionality.
 
 ### Test Environment
 
@@ -37,18 +39,21 @@ The `segmentCoins()` function was benchmarked in both Go and Python. This functi
 |-----------------|---------------|---------------|----------------|-------------|--------------------------|--------------------|
 | **Go (GoCV)**   | 798.00        | 4034.00       | 1226.44        | 176.06      | 536                      | 10                 |
 | **Python (cv2)**| 714.60        | 1068.37       | 770.65         | 83.77       | -                        | -                  |
+| **C++ (OpenCV)**| 402.77        | 1189.77       | 424.73         | 48.14       | -                        | -                  |
 
 ### Observations:
 
 - **Python Execution Time**: The Python implementation had a faster mean execution time of **770.65 µs**, compared to Go's **1226.44 µs**.
 - **Go Performance Variance**: Go had a larger **maximum execution time** (**4034 µs**) and a higher **standard deviation** (**176.06 µs**), suggesting more performance variability.
 - **Memory Allocations**: Go's implementation shows **10 memory allocations per operation** on average, possibly due to garbage collection and extra memory overhead. Python’s C++ bindings handle memory differently, and pytest-benchmark may not capture the full picture, so take this result with a grain of salt.
+- **C++ Execution Time**: The C++ version showed significant improvement with a **minimum time** of **402.77 µs** and a **mean time** of **424.73 µs**, which is the fastest among all three languages. This further highlights C++'s efficiency for such low-level tasks.
 
 ### Analysis and Insights
 
-- Different from the expected behavior, using go instead of Python for image processing tasks did not result in **faster execution times** just by changing the language.
+- Contrary to the expected behavior of compiled languages like go, using go instead of Python for image processing tasks did not result in **faster execution times** just by changing the language.
 - Go's garbage collection and memory management may not be fully optimized, compared to Python's C++ bindings, but this need more investigation, due to the lack of information from pytest-benchmark. This may explain the larger variance in execution times, as seen in the **higher standard deviation**.
 - Optimizing Go’s implementation by reducing memory allocations could potentially improve its performance, but it needs more expertise of the developer compared to Python implementations.
+- **C++ Efficiency**: The C++ implementation is the most efficient for this benchmark, achieving the **fastest mean execution time** and **lowest minimum time**. This is likely due to the direct compilation to machine code and the lack of additional memory management overhead like garbage collection. The Max time, although 11% slower than Python's, it is in the order of magnitude of 0.1 ms, which may be affected to the the conditions being run a personal PC. This negligible difference at max time to Python may be due to the memory allocation of python bindings being the same order of magnitude.
 
 ### Conclusion
 
